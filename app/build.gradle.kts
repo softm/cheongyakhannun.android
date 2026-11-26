@@ -2,21 +2,21 @@ plugins {
     id("com.android.application")
 }
 
-val webSource = rootProject.file("../bunyanghannun/public")
+val webSource = rootProject.file("../cheongyakhannun/public")
 
 android {
-    namespace = "net.softm.bunyanghannun"
+    namespace = "net.softm.cheongyakhannun"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "net.softm.bunyanghannun"
+        applicationId = "net.softm.cheongyakhannun"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
 
-        val webUrl = providers.gradleProperty("BUNYANGHANNUN_WEB_URL")
-            .orElse("https://softm.github.io/bunyanghannun/")
+        val webUrl = providers.gradleProperty("CHEONGYAKHANNUN_WEB_URL")
+            .orElse("https://softm.github.io/cheongyakhannun/")
             .get()
         buildConfigField("String", "WEB_URL", "\"$webUrl\"")
         buildConfigField("String", "DATA_URL", "\"${webUrl}data/notices.json\"")

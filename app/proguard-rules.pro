@@ -1,2 +1,2 @@
 -keepclassmembers class * { @android.webkit.JavascriptInterface <methods>; }
--keep class net.softm.bunyanghannun.NoticeSyncWorker { public <init>(...); }
+-keep class net.softm.cheongyakhannun.NoticeSyncWorker { public <init>(...); }

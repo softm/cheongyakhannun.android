@@ -59,12 +59,12 @@ jobs:
           test -n "$VERSION"
           test -n "$CODE"
           TAG="play-$CODE"
-          APK="bunyanghannun-$CODE-release.apk"
-          AAB="bunyanghannun-$CODE-release.aab"
+          APK="cheongyakhannun-$CODE-release.apk"
+          AAB="cheongyakhannun-$CODE-release.aab"
           cp app/build/outputs/apk/release/app-release.apk "$APK"
           cp app/build/outputs/bundle/release/app-release.aab "$AAB"
-          shasum -a 256 "$APK" "$AAB" > "bunyanghannun-$CODE-SHA256SUMS.txt"
-          gh release create "$TAG" "$APK" "$AAB" "bunyanghannun-$CODE-SHA256SUMS.txt" \
+          shasum -a 256 "$APK" "$AAB" > "cheongyakhannun-$CODE-SHA256SUMS.txt"
+          gh release create "$TAG" "$APK" "$AAB" "cheongyakhannun-$CODE-SHA256SUMS.txt" \
             --draft \
             --target "$GITHUB_SHA" \
             --title "청약한눈 $VERSION ($CODE) Play 배포 준비" \

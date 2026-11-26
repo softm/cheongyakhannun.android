@@ -1,6 +1,6 @@
 import { ADFIT_CONFIG, NATIVE_ADS } from "../adfit-config.js";
 
-export const BOTTOM_AD_STORAGE_KEY = "bunyanghannun:ad-bottom:expanded:v1";
+export const BOTTOM_AD_STORAGE_KEY = "cheongyakhannun:ad-bottom:expanded:v1";
 
 let sdkReady;
 let serial = 0;
@@ -82,8 +82,8 @@ function createAdNode(slot, onState) {
     ins.dataset.adWidth = String(slot.width);
     ins.dataset.adHeight = String(slot.height);
     const id = ++serial;
-    const failed = `bunyangAdFailed${id}`;
-    const loaded = `bunyangAdLoaded${id}`;
+    const failed = `cheongyakAdFailed${id}`;
+    const loaded = `cheongyakAdLoaded${id}`;
     window[failed] = () => { resolveFirst?.(); clear(); };
     window[loaded] = () => {
       window.clearTimeout(timeout);

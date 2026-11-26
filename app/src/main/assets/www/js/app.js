@@ -19,10 +19,10 @@ import {
 import { mountBottomAd } from "./adfit.js";
 
 const STORAGE = {
-  watch: "cheongyak:watch:v1",
-  saved: "cheongyak:saved:v1",
-  seen: "cheongyak:seen:v1",
-  checklist: "cheongyak:checklist:v1"
+  watch: "cheongyakhannun:watch:v1",
+  saved: "cheongyakhannun:saved:v1",
+  seen: "cheongyakhannun:seen:v1",
+  checklist: "cheongyakhannun:checklist:v1"
 };
 const urlParams = new URLSearchParams(location.search);
 const allowedPhases = new Set(["active", "open", "upcoming", "announced", "closed", "all"]);

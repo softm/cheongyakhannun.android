@@ -166,7 +166,7 @@ export function createNoticeIcs(notice) {
   if (!start) return "";
   const endDate = parseDate(end);
   endDate?.setDate(endDate.getDate() + 1);
-  const uid = `${notice.id}@bunyanghannun.softm.net`.replace(/[^A-Za-z0-9@._-]/g, "-");
+  const uid = `${notice.id}@cheongyakhannun.softm.net`.replace(/[^A-Za-z0-9@._-]/g, "-");
   const description = `${notice.sourceName || "공식기관"} 공고입니다. 자격과 일정은 기관 원문에서 최종 확인하세요.`;
   return [
     "BEGIN:VCALENDAR",

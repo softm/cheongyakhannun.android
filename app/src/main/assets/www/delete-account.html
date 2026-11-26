@@ -18,7 +18,7 @@
   <script type="module">
     const confirm=document.querySelector('#deleteConfirm');const button=document.querySelector('#deleteLocalData');const result=document.querySelector('#deleteResult');
     confirm.addEventListener('change',()=>{button.disabled=!confirm.checked});
-    button.addEventListener('click',()=>{['cheongyak:watch:v1','cheongyak:saved:v1','cheongyak:seen:v1','cheongyak:checklist:v1'].forEach(key=>localStorage.removeItem(key));confirm.checked=false;button.disabled=true;result.textContent='이 기기에 저장된 청약한눈 데이터를 삭제했습니다.';});
+    button.addEventListener('click',()=>{['cheongyakhannun:watch:v1','cheongyakhannun:saved:v1','cheongyakhannun:seen:v1','cheongyakhannun:checklist:v1'].forEach(key=>localStorage.removeItem(key));confirm.checked=false;button.disabled=true;result.textContent='이 기기에 저장된 청약한눈 데이터를 삭제했습니다.';});
   </script>
 </body>
 </html>

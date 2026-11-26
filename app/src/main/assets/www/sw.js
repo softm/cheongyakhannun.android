@@ -1,4 +1,4 @@
-const CACHE_NAME='bunyanghannun-shell-source';
+const CACHE_NAME='cheongyakhannun-shell-source';
 const BUILD_ASSETS=[];
 const SHELL=[...new Set([
   './','./?source=pwa','./manifest.webmanifest','./privacy.html','./delete-account.html',
@@ -11,7 +11,7 @@ self.addEventListener('install',event=>{
 });
 
 self.addEventListener('activate',event=>{
-  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('bunyanghannun-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));
+  event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('cheongyakhannun-shell-')&&key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));
 });
 
 self.addEventListener('fetch',event=>{

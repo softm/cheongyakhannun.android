@@ -12,7 +12,7 @@ def read(path: str) -> str:
 main_ids = read("app/src/main/res/values/admob.xml")
 debug_ids = read("app/src/debug/res/values/admob.xml")
 manifest = read("app/src/main/AndroidManifest.xml")
-activity = read("app/src/main/java/net/softm/bunyanghannun/MainActivity.java")
+activity = read("app/src/main/java/net/softm/cheongyakhannun/MainActivity.java")
 build = read("app/build.gradle.kts")
 web_config = read("app/src/main/assets/www/adfit-config.js")
 web_adfit = read("app/src/main/assets/www/js/adfit.js")
@@ -34,6 +34,9 @@ for test_id in (
     assert test_id in debug_ids, f"Debug 테스트 ID 누락: {test_id}"
 
 assert "@string/admob_app_id" in manifest, "Google Mobile Ads 앱 ID 메타데이터가 필요합니다."
+assert 'namespace = "net.softm.cheongyakhannun"' in build
+assert 'applicationId = "net.softm.cheongyakhannun"' in build
+assert "https://softm.github.io/cheongyakhannun/" in build
 assert "HannunWebViewAds.markNativeAds(settings)" in activity, "AdMobNative/1 표식 연결이 필요합니다."
 assert 'implementation("com.github.softm:hannun-admob-android:1.0.6")' in build
 for token in (
@@ -49,8 +52,9 @@ for token in (
 
 assert r"AdMobNative\/1" in web_config, "번들 웹에 네이티브 광고 중복 방지 표식이 없습니다."
 web_adfit_units = re.findall(r'unit:\s*"(DAN-[^"]+)"', web_config)
-assert len(web_adfit_units) == 2, "번들 웹에 PC·모바일 AdFit 운영 단위가 모두 필요합니다."
-assert len(set(web_adfit_units)) == 2, "번들 웹의 PC·모바일 AdFit 단위를 재사용하면 안 됩니다."
+assert len(web_adfit_units) == 0, "분양한눈 AdFit 단위를 청약한눈 번들에서 재사용하면 안 됩니다."
+assert "enabled: false" in web_config, "청약한눈 전용 AdFit 발급 전에는 광고를 비활성화해야 합니다."
+assert "DAN-iRADVNYvQvGxjcdU" not in web_config and "DAN-jT5C5ojnNK2xQIkp" not in web_config
 assert "if (NATIVE_ADS" in web_adfit, "Android WebView에서 AdFit 요청을 차단해야 합니다."
 assert "new IntersectionObserver" in web_adfit and "10_000" in web_adfit
 assert "showAdPrivacyOptions" not in activity, "공통 UMP 버튼과 중복되는 웹 브리지를 두면 안 됩니다."

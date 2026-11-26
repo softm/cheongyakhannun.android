@@ -1,12 +1,12 @@
 # 청약한눈 Android
 
-`bunyanghannun` PWA를 표시하고 관심조건에 맞는 신규 공고·접수 마감을 기기 안에서 확인하는 한눈서비스 Android 앱입니다.
+`cheongyakhannun` PWA를 표시하고 관심조건에 맞는 신규 공고·접수 마감을 기기 안에서 확인하는 한눈서비스 Android 앱입니다.
 
 ## 구성
 
 - SDK: `compileSdk 36`, `targetSdk 36`, `minSdk 24`
-- 패키지: `net.softm.bunyanghannun`
-- 운영 URL: `https://softm.github.io/bunyanghannun/`
+- 패키지: `net.softm.cheongyakhannun`
+- 운영 URL: `https://softm.github.io/cheongyakhannun/`
 - 시작 시 문서·정적 자산 1회 재검증 후 기본 캐시 정책 복귀
 - 메인 문서 네트워크/HTTP 오류 시 공통 실패 화면과 48dp 재시도 버튼
 - WorkManager 6시간 주기, 관심조건과 공식 JSON을 기기 안에서 비교
@@ -14,7 +14,7 @@
 - 운영 AdMob은 `autorunnavi@gmail.com`의 청약한눈 전용 앱 ID와 하단 네이티브·적응형 배너 대체·시간 기반 전면·종료 300×250 단위로 구성
 - Google UMP 동의 및 광고 개인정보 설정, 광고 실패 시 빈 공간 제거, Activity 광고 생명주기를 공통 모듈에서 관리
 - Android WebView User-Agent에 `AdMobNative/1`을 표시해 웹 Kakao AdFit 요청과 중복 노출을 차단
-- 빌드 전 형제 저장소 `../bunyanghannun/public`을 오프라인 assets로 동기화
+- 빌드 전 형제 저장소 `../cheongyakhannun/public`을 오프라인 assets로 동기화
 
 ## 로컬 검증
 

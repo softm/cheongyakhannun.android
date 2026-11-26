@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "bunyanghannun.android"
+rootProject.name = "cheongyakhannun.android"
 include(":app")

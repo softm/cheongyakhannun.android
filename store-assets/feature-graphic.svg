@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="375" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff8fa"/><stop offset="1" stop-color="#f6e8ee"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d85b87"/><stop offset="1" stop-color="#8f3658"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#bg)"/>
+  <circle cx="900" cy="70" r="210" fill="#ffffff" opacity=".55"/>
+  <circle cx="820" cy="460" r="250" fill="#8f3658" opacity=".06"/>
+  <rect x="82" y="98" width="140" height="140" rx="38" fill="url(#mark)"/>
+  <path d="M116 160l36-31 36 31v43h-24v-27h-24v27h-24z" fill="#fff"/>
+  <circle cx="185" cy="133" r="15" fill="#fff"/><path d="M185 122v13l8 5" fill="none" stroke="#8f3658" stroke-width="4" stroke-linecap="round"/>
+  <text x="82" y="320" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="62" font-weight="800" fill="#262433">청약한눈</text>
+  <text x="82" y="382" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="31" font-weight="650" fill="#8f3658">오늘 확인할 청약을 딱 맞게 모았어요</text>
+  <text x="82" y="430" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" fill="#766b72">공식 청약 공고 · 접수 일정 · 관심조건 알림</text>
+</svg>

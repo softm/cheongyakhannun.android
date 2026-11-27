@@ -12,7 +12,6 @@ def read(path: str) -> str:
 main_ids = read("app/src/main/res/values/admob.xml")
 debug_ids = read("app/src/debug/res/values/admob.xml")
 manifest = read("app/src/main/AndroidManifest.xml")
-release_manifest = read("app/src/release/AndroidManifest.xml")
 activity = read("app/src/main/java/net/softm/cheongyakhannun/MainActivity.java")
 build = read("app/build.gradle.kts")
 web_config = read("app/src/main/assets/www/adfit-config.js")
@@ -20,7 +19,14 @@ web_adfit = read("app/src/main/assets/www/js/adfit.js")
 
 production_app_ids = re.findall(r"ca-app-pub-4219853075548260~\d+", main_ids)
 production_unit_ids = re.findall(r"ca-app-pub-4219853075548260/\d+", main_ids)
-assert not production_app_ids and not production_unit_ids, "청약한눈 전용 등록 전에는 분양한눈 운영 ID를 재사용하면 안 됩니다."
+assert production_app_ids == ["ca-app-pub-4219853075548260~9063069311"], "청약한눈 전용 AdMob 앱 ID가 필요합니다."
+assert set(production_unit_ids) == {
+    "ca-app-pub-4219853075548260/1456042030",
+    "ca-app-pub-4219853075548260/5244464997",
+    "ca-app-pub-4219853075548260/4286606545",
+    "ca-app-pub-4219853075548260/6953453286",
+}, "청약한눈 전용 네 개 광고 지면 ID가 필요합니다."
+assert len(production_unit_ids) == 4, "청약한눈 운영 광고 지면은 네 개여야 합니다."
 for bunyang_id in (
     "ca-app-pub-4219853075548260~2356090546",
     "ca-app-pub-4219853075548260/1629719278",
@@ -41,8 +47,7 @@ for test_id in (
     assert test_id in debug_ids, f"Debug 테스트 ID 누락: {test_id}"
 
 assert "@string/admob_app_id" in manifest, "Google Mobile Ads 앱 ID 메타데이터가 필요합니다."
-assert 'android:name="com.google.android.gms.ads.APPLICATION_ID"' in release_manifest and 'tools:node="remove"' in release_manifest
-assert 'android:name="com.google.android.gms.ads.MobileAdsInitProvider"' in release_manifest
+assert not (ROOT / "app/src/release/AndroidManifest.xml").exists(), "운영 AdMob 초기화 제거 매니페스트가 남아 있습니다."
 assert 'namespace = "net.softm.cheongyakhannun"' in build
 assert 'applicationId = "net.softm.cheongyakhannun"' in build
 assert "https://softm.github.io/cheongyakhannun/" in build
@@ -69,4 +74,4 @@ assert "if (NATIVE_ADS" in web_adfit, "Android WebView에서 AdFit 요청을 차
 assert "new IntersectionObserver" in web_adfit and "10_000" in web_adfit
 assert "showAdPrivacyOptions" not in activity, "공통 UMP 버튼과 중복되는 웹 브리지를 두면 안 됩니다."
 
-print("청약한눈 AdMob 미등록 안전 비활성·AdFit 전용 분리 검증 통과")
+print("청약한눈 전용 AdMob 4지면·AdFit 중복 방지 검증 통과")

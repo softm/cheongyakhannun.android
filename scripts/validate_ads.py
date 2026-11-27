@@ -52,8 +52,9 @@ for token in (
 
 assert r"AdMobNative\/1" in web_config, "번들 웹에 네이티브 광고 중복 방지 표식이 없습니다."
 web_adfit_units = re.findall(r'unit:\s*"(DAN-[^"]+)"', web_config)
-assert len(web_adfit_units) == 0, "분양한눈 AdFit 단위를 청약한눈 번들에서 재사용하면 안 됩니다."
-assert "enabled: false" in web_config, "청약한눈 전용 AdFit 발급 전에는 광고를 비활성화해야 합니다."
+assert len(web_adfit_units) == 2, "청약한눈 전용 PC·모바일 AdFit 단위가 모두 필요합니다."
+assert len(set(web_adfit_units)) == 2, "청약한눈 PC·모바일 AdFit 단위를 재사용하면 안 됩니다."
+assert set(web_adfit_units) == {"DAN-obc38Zd2XD9940os", "DAN-c5FSnJxYcJGNguZZ"}
 assert "DAN-iRADVNYvQvGxjcdU" not in web_config and "DAN-jT5C5ojnNK2xQIkp" not in web_config
 assert "if (NATIVE_ADS" in web_adfit, "Android WebView에서 AdFit 요청을 차단해야 합니다."
 assert "new IntersectionObserver" in web_adfit and "10_000" in web_adfit

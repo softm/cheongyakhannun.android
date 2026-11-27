@@ -18,4 +18,4 @@
 - 원본 서명 Secret 이름: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`
 - Secret 값은 읽거나 저장소에 복사하지 않는다. 신규 저장소에 별도로 등록해야 한다.
 - AdMob 운영 ID는 청약한눈 전용으로 표기돼 있으나 신규 패키지 `net.softm.cheongyakhannun`의 Play 연결 전 상태를 확인한 뒤 Release 배포에 사용한다.
-- 번들 웹은 분양한눈 소유 AdFit ID를 포함하지 않으며, 청약한눈 전용 AdFit 발급 전까지 비활성화한다.
+- 번들 웹은 분양한눈 소유 AdFit ID를 포함하지 않는다. 청약한눈 전용 매체 `NKw`와 PC `DAN-obc38Zd2XD9940os`, 모바일 `DAN-c5FSnJxYcJGNguZZ`를 사용한다.

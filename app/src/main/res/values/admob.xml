@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- autorunnavi@gmail.com / 청약한눈 Android 전용 운영 ID. -->
-    <string name="admob_app_id" translatable="false">ca-app-pub-4219853075548260~2356090546</string>
-    <string name="admob_native_ad_unit_id" translatable="false">ca-app-pub-4219853075548260/1629719278</string>
-    <string name="admob_adaptive_banner_ad_unit_id" translatable="false">ca-app-pub-4219853075548260/2695388932</string>
-    <string name="admob_interstitial_ad_unit_id" translatable="false">ca-app-pub-4219853075548260/4675839963</string>
-    <string name="admob_exit_banner_ad_unit_id" translatable="false">ca-app-pub-4219853075548260/8003555938</string>
+    <!-- net.softm.cheongyakhannun 전용 AdMob 앱·지면 등록 전에는 다른 서비스 ID를 재사용하지 않는다. -->
+    <string name="admob_app_id" translatable="false"></string>
+    <string name="admob_native_ad_unit_id" translatable="false"></string>
+    <string name="admob_adaptive_banner_ad_unit_id" translatable="false"></string>
+    <string name="admob_interstitial_ad_unit_id" translatable="false"></string>
+    <string name="admob_exit_banner_ad_unit_id" translatable="false"></string>
 </resources>

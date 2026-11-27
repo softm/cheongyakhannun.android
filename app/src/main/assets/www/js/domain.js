@@ -1,7 +1,14 @@
 export const REGIONS = [
-  "서울", "경기", "인천", "부산", "대구", "광주", "대전", "울산", "세종",
-  "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주"
+  "서울", "경기", "인천", "부산", "대구", "광주특별시", "대전", "울산", "세종",
+  "강원", "충북", "충남", "전북", "경북", "경남", "제주"
 ];
+
+const REGION_ALIASES = Object.freeze({
+  "광주": "광주특별시",
+  "전남": "광주특별시",
+  "전남광주통합특별시": "광주특별시",
+  "전남광주특별시": "광주특별시"
+});
 
 export const NOTICE_TYPES = [
   "민간분양", "공공분양", "공공임대", "민간임대", "오피스텔", "무순위", "임의공급"
@@ -188,7 +195,9 @@ export function createNoticeIcs(notice) {
 }
 
 export function sanitizeWatchProfile(value = {}) {
-  const regions = [...new Set((Array.isArray(value.regions) ? value.regions : []).filter((item) => REGIONS.includes(item)))];
+  const regions = [...new Set((Array.isArray(value.regions) ? value.regions : [])
+    .map((item) => REGION_ALIASES[item] || item)
+    .filter((item) => REGIONS.includes(item)))];
   const types = [...new Set((Array.isArray(value.types) ? value.types : []).filter((item) => NOTICE_TYPES.includes(item)))];
   return {
     enabled: Boolean(value.enabled),

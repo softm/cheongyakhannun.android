@@ -12,8 +12,8 @@ android {
         applicationId = "net.softm.cheongyakhannun"
         minSdk = 24
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
 
         val webUrl = providers.gradleProperty("CHEONGYAKHANNUN_WEB_URL")
             .orElse("https://softm.github.io/cheongyakhannun/")
@@ -70,6 +70,7 @@ dependencies {
     implementation("androidx.work:work-runtime:2.12.0")
     implementation("com.github.softm:hannun-admob-android:1.0.6")
     implementation("com.github.softm:hannun-in-app-update-android:1.0.0")
+    implementation("com.github.softm:hannun-in-app-review-android:1.0.0")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20250517")

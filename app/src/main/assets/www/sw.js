@@ -2,7 +2,7 @@ const CACHE_NAME='cheongyakhannun-shell-source';
 const BUILD_ASSETS=[];
 const SHELL=[...new Set([
   './','./?source=pwa','./manifest.webmanifest','./privacy.html','./delete-account.html',
-  './assets/icon-192.png','./assets/icon-512.png','./assets/icon-maskable-512.png','./assets/apple-touch-icon.png',
+  './assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/icon-maskable-512.png','./assets/apple-touch-icon.png',
   ...BUILD_ASSETS
 ])];
 

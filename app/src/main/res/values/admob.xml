@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- net.softm.cheongyakhannun 전용 AdMob 앱·지면 등록 전에는 다른 서비스 ID를 재사용하지 않는다. -->
-    <string name="admob_app_id" translatable="false"></string>
-    <string name="admob_native_ad_unit_id" translatable="false"></string>
-    <string name="admob_adaptive_banner_ad_unit_id" translatable="false"></string>
-    <string name="admob_interstitial_ad_unit_id" translatable="false"></string>
-    <string name="admob_exit_banner_ad_unit_id" translatable="false"></string>
+    <!-- net.softm.cheongyakhannun 전용 운영 앱·지면 ID. -->
+    <string name="admob_app_id" translatable="false">ca-app-pub-4219853075548260~9063069311</string>
+    <string name="admob_native_ad_unit_id" translatable="false">ca-app-pub-4219853075548260/1456042030</string>
+    <string name="admob_adaptive_banner_ad_unit_id" translatable="false">ca-app-pub-4219853075548260/5244464997</string>
+    <string name="admob_interstitial_ad_unit_id" translatable="false">ca-app-pub-4219853075548260/4286606545</string>
+    <string name="admob_exit_banner_ad_unit_id" translatable="false">ca-app-pub-4219853075548260/6953453286</string>
 </resources>

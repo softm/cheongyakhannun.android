@@ -45,6 +45,7 @@ import java.util.Locale;
 import softm.hannun.ads.HannunAdConfig;
 import softm.hannun.ads.HannunAds;
 import softm.hannun.ads.HannunWebViewAds;
+import softm.hannun.review.HannunInAppReviewManager;
 import softm.hannun.update.HannunInAppUpdateManager;
 
 public final class MainActivity extends ComponentActivity {
@@ -58,6 +59,7 @@ public final class MainActivity extends ComponentActivity {
     private boolean firstContentShown;
     private HannunAds ads;
     private HannunInAppUpdateManager appUpdater;
+    private HannunInAppReviewManager appReviewer;
     private String pendingDocumentText;
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
@@ -96,6 +98,7 @@ public final class MainActivity extends ComponentActivity {
         configureWebView();
         installBridge();
         appUpdater = new HannunInAppUpdateManager(this, null);
+        appReviewer = new HannunInAppReviewManager(this);
         configureAds(findViewById(R.id.adHost));
         NoticeSyncScheduler.ensureScheduled(this);
 
@@ -345,10 +348,12 @@ public final class MainActivity extends ComponentActivity {
     @Override protected void onResume() {
         super.onResume();
         appUpdater.onResume();
+        appReviewer.onResume();
         if (ads != null) ads.onResume();
     }
 
     @Override protected void onPause() {
+        appReviewer.onPause();
         appUpdater.onPause();
         if (ads != null) ads.onPause();
         super.onPause();
@@ -365,6 +370,7 @@ public final class MainActivity extends ComponentActivity {
     }
 
     @Override protected void onDestroy() {
+        appReviewer.destroy();
         appUpdater.destroy();
         if (ads != null) ads.destroy();
         webView.destroy();

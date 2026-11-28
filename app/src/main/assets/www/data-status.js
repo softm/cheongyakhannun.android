@@ -66,6 +66,7 @@ async function loadStatus() {
     $("#total").textContent = formatCount(items.length);
     $("#applyhome").textContent = formatCount(counts.applyhome);
     $("#lh").textContent = formatCount(counts.lh);
+    $("#lh-plan").textContent = formatCount(counts.lh_plan);
     $("#sh").textContent = formatCount(counts.sh);
     $("#generated").textContent = formatTimestamp(envelope.generatedAt);
     $("#overall-status").textContent = statusLabels[envelope.status] || envelope.status || "—";
@@ -74,15 +75,18 @@ async function loadStatus() {
     const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
     const next = items.filter((item) => item.applyStart >= today).sort((a, b) => a.applyStart.localeCompare(b.applyStart))[0];
     $("#next-apply").textContent = next ? `${next.applyStart} · ${next.title}` : "예정 일정 없음";
+    const thisMonth = today.slice(0, 7);
+    const nextPlan = items.filter((item) => item.dataKind === "supply_plan" && item.supplyPlanMonth >= thisMonth).sort((a, b) => a.supplyPlanMonth.localeCompare(b.supplyPlanMonth))[0];
+    $("#next-plan").textContent = nextPlan ? `${nextPlan.supplyPlanMonth} · ${nextPlan.title}` : "예정 계획 없음";
     renderSources(sources, counts);
     const age = dataAgeHours(envelope.generatedAt);
     const delayed = age !== null && age >= 24;
     notice.className = `notice ${envelope.status === "ready" && !delayed ? "ok" : envelope.status === "error" ? "error" : ""}`;
     notice.textContent = envelope.status === "ready" && !delayed
-      ? `공식 공고 ${formatCount(items.length)}건을 정상 제공하고 있습니다. 세 원천이 모두 정상입니다.`
+      ? `공식 공고·계획 ${formatCount(items.length)}건을 정상 제공하고 있습니다. 모든 원천이 정상입니다.`
       : delayed
-        ? `공식 공고 ${formatCount(items.length)}건을 제공 중이지만 마지막 갱신이 ${Math.floor(age / 24)}일 전입니다. 신청 전 기관 원문을 확인해 주세요.`
-      : `공식 공고 ${formatCount(items.length)}건을 제공 중입니다. 원천별 상태를 확인해 주세요.`;
+        ? `공식 공고·계획 ${formatCount(items.length)}건을 제공 중이지만 마지막 갱신이 ${Math.floor(age / 24)}일 전입니다. 신청 전 기관 원문을 확인해 주세요.`
+      : `공식 공고·계획 ${formatCount(items.length)}건을 제공 중입니다. 원천별 상태를 확인해 주세요.`;
   } catch (error) {
     notice.className = "notice error";
     notice.textContent = `데이터 현황을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요. (${error.message})`;

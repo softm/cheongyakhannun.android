@@ -33,4 +33,14 @@ public class ConfigTest {
         assertEquals(Integer.valueOf(0), DeadlinePolicy.daysUntil("2026-11-23", "2026-11-23"));
         assertEquals("deadline:notice-1:1", DeadlinePolicy.notificationKey("notice-1", 1));
     }
+
+    @Test public void supplyPlansDoNotTriggerNoticeNotifications() throws Exception {
+        JSONObject notice = new JSONObject().put("dataKind", "notice");
+        JSONObject supplyPlan = new JSONObject().put("dataKind", "supply_plan");
+        JSONObject staleNotice = new JSONObject().put("dataKind", "notice").put("stale", true);
+
+        assertTrue(NoticeSyncWorker.isNotifiableNotice(notice));
+        assertFalse(NoticeSyncWorker.isNotifiableNotice(supplyPlan));
+        assertFalse(NoticeSyncWorker.isNotifiableNotice(staleNotice));
+    }
 }

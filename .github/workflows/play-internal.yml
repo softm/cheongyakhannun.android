@@ -33,12 +33,17 @@ jobs:
         run: |
           test -n "$RELEASE_TAG"
           test -n "$EXPECTED_COMMIT"
-          ACTUAL_COMMIT="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish)"
-          IS_DRAFT="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)"
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" > releases.json
+          RELEASE_ID="$(jq -r --arg tag "$RELEASE_TAG" '[.[] | select(.tag_name == $tag and .draft == true)] | if length == 1 then .[0].id else empty end' releases.json)"
+          test -n "$RELEASE_ID"
+          ACTUAL_COMMIT="$(jq -r --argjson release_id "$RELEASE_ID" '.[] | select(.id == $release_id) | .target_commitish' releases.json)"
           test "$ACTUAL_COMMIT" = "$EXPECTED_COMMIT"
-          test "$IS_DRAFT" = "true"
           mkdir -p release-assets
-          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --dir release-assets
+          while IFS=$'\t' read -r ASSET_ID ASSET_NAME; do
+            test -n "$ASSET_ID"
+            test -n "$ASSET_NAME"
+            gh api -H "Accept: application/octet-stream" "repos/$GITHUB_REPOSITORY/releases/assets/$ASSET_ID" > "release-assets/$ASSET_NAME"
+          done < <(jq -r --argjson release_id "$RELEASE_ID" '.[] | select(.id == $release_id) | .assets[] | [.id, .name] | @tsv' releases.json)
           cd release-assets
           test "$(find . -maxdepth 1 -type f -name '*.apk' | wc -l | tr -d ' ')" = "1"
           test "$(find . -maxdepth 1 -type f -name '*.aab' | wc -l | tr -d ' ')" = "1"

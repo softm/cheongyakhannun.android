@@ -50,7 +50,7 @@ public final class NoticeSyncWorker extends Worker {
 
             for (int index = 0; index < notices.length(); index += 1) {
                 JSONObject notice = notices.optJSONObject(index);
-                if (notice == null || notice.optBoolean("stale", false) || !WatchProfileStore.matches(notice, profile)) continue;
+                if (!isNotifiableNotice(notice) || !WatchProfileStore.matches(notice, profile)) continue;
                 String id = notice.optString("id", "");
                 String title = notice.optString("title", "청약 공고");
                 if (id.trim().isEmpty()) continue;
@@ -93,6 +93,12 @@ public final class NoticeSyncWorker extends Worker {
         } catch (Exception error) {
             return getRunAttemptCount() < 3 ? Result.retry() : Result.failure();
         }
+    }
+
+    static boolean isNotifiableNotice(JSONObject notice) {
+        return notice != null
+            && !notice.optBoolean("stale", false)
+            && !"supply_plan".equals(notice.optString("dataKind", ""));
     }
 
     private JSONObject fetchEnvelope() throws Exception {

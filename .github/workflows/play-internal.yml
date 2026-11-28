@@ -33,18 +33,20 @@ jobs:
           test -n "$KEYSTORE_B64"
           printf '%s' "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/softm.keystore.jks"
           echo '7d7a15b6659180f427528c3684d892902e157cbda88a4c0cd7588507c94ecf62  '"$RUNNER_TEMP/softm.keystore.jks" | sha256sum --check
-      - name: Build signed AAB
+      - name: Build signed Release APK and AAB
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/softm.keystore.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: gradle :app:bundleRelease
+        run: gradle :app:assembleRelease :app:bundleRelease
       - uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
-          name: cheongyakhannun-release-aab
-          path: app/build/outputs/bundle/release/app-release.aab
+          name: cheongyakhannun-release-files
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/app-release.aab
           retention-days: 1
       - name: Upload to Google Play internal track
         uses: r0adkll/upload-google-play@v1

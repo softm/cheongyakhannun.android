@@ -12,8 +12,8 @@ android {
         applicationId = "net.softm.cheongyakhannun"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
 
         val webUrl = providers.gradleProperty("CHEONGYAKHANNUN_WEB_URL")
             .orElse("https://softm.github.io/cheongyakhannun/")

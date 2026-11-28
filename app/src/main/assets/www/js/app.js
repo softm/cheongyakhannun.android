@@ -2,10 +2,13 @@ import {
   REGIONS,
   NOTICE_TYPES,
   DEFAULT_WATCH_PROFILE,
+  THIRD_NEW_TOWN_PROGRAM_ID,
   buildCalendarEvents,
+  classifyThirdNewTown,
   createNoticeIcs,
   filterNotices,
   formatKoreanDate,
+  formatKoreanMonth,
   formatPrice,
   getDday,
   getNoticePhase,
@@ -25,7 +28,7 @@ const STORAGE = {
   checklist: "cheongyakhannun:checklist:v1"
 };
 const urlParams = new URLSearchParams(location.search);
-const allowedPhases = new Set(["active", "open", "upcoming", "announced", "closed", "all"]);
+const allowedPhases = new Set(["active", "open", "upcoming", "announced", "planned", "closed", "all"]);
 
 const state = {
   envelope: { status: "loading", notices: [], sources: [] },
@@ -33,6 +36,7 @@ const state = {
   view: "feed",
   region: urlParams.get("region") || "전체",
   type: urlParams.get("type") || "전체",
+  program: urlParams.get("program") === THIRD_NEW_TOWN_PROGRAM_ID ? THIRD_NEW_TOWN_PROGRAM_ID : "all",
   phase: allowedPhases.has(urlParams.get("phase")) ? urlParams.get("phase") : "active",
   query: urlParams.get("q") || "",
   sort: ["deadline", "recent", "title"].includes(urlParams.get("sort")) ? urlParams.get("sort") : "deadline",
@@ -83,7 +87,7 @@ async function init() {
 function bindElements() {
   [
     "dataBanner", "dataStatusTitle", "dataStatusCopy", "noticeGrid", "noticeEmpty", "savedGrid", "savedEmpty",
-    "resultSummary", "sortSelect", "searchForm", "searchInput", "regionFilters", "typeFilters", "phaseFilters", "watchDialog",
+    "resultSummary", "sortSelect", "searchForm", "searchInput", "programFilters", "regionFilters", "typeFilters", "phaseFilters", "watchDialog",
     "watchForm", "watchRegions", "watchTypes", "watchTitle", "watchSummary", "permissionNote", "detailDialog",
     "detailContent", "detailSource", "detailDialogTitle", "sourceDialog", "sourceStatusList", "calendarGrid",
     "calendarEvents", "calendarTitle", "savedCountBadge", "deadlineList", "toast", "installButton", "installDialog",
@@ -110,6 +114,7 @@ function bindEvents() {
     state.phase = button.dataset.quickPhase;
     state.region = "전체";
     state.type = "전체";
+    state.program = "all";
     state.visibleCount = 24;
     setView("feed");
     renderFilters();
@@ -251,6 +256,9 @@ function renderSummary() {
 }
 
 function renderFilters() {
+  const programs = [["all", "전체 청약"], [THIRD_NEW_TOWN_PROGRAM_ID, "3기 신도시"]];
+  els.programFilters.innerHTML = programs.map(([value, label]) => `<button type="button" class="${state.program === value ? "active" : ""}" aria-pressed="${state.program === value}" data-program="${value}">${label}</button>`).join("");
+  els.programFilters.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => { state.program = button.dataset.program; state.visibleCount = 24; renderFilters(); renderFeed(); }));
   const availableRegions = [...new Set(state.notices.map((notice) => notice.region).filter(Boolean))];
   const regions = ["전체", ...REGIONS.filter((region) => availableRegions.includes(region)), ...availableRegions.filter((region) => !REGIONS.includes(region))];
   els.regionFilters.innerHTML = regions.map((region) => `<button type="button" class="${state.region === region ? "active" : ""}" aria-pressed="${state.region === region}" data-region="${escapeAttribute(region)}">${escapeHtml(region)}</button>`).join("");
@@ -258,7 +266,7 @@ function renderFilters() {
   const featuredTypes = ["전체", "민간분양", "공공분양", "공공임대", "무순위", "오피스텔", "민간임대"];
   els.typeFilters.innerHTML = featuredTypes.map((type) => `<button type="button" class="${state.type === type ? "active" : ""}" aria-pressed="${state.type === type}" data-type="${escapeAttribute(type)}">${escapeHtml(type)}</button>`).join("");
   els.typeFilters.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => { state.type = button.dataset.type; state.visibleCount = 24; renderFilters(); renderFeed(); }));
-  const phases = [["active", "진행·예정"], ["open", "접수중"], ["upcoming", "접수예정"], ["announced", "새 공고"], ["closed", "지난 공고"], ["all", "전체"]];
+  const phases = [["active", "진행·예정"], ["open", "접수중"], ["upcoming", "접수예정"], ["announced", "새 공고"], ["planned", "공급계획"], ["closed", "지난 항목"], ["all", "전체"]];
   els.phaseFilters.innerHTML = phases.map(([value, label]) => `<button type="button" class="${state.phase === value ? "active" : ""}" aria-pressed="${state.phase === value}" data-phase="${value}">${label}</button>`).join("");
   els.phaseFilters.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => { state.phase = button.dataset.phase; state.visibleCount = 24; renderFilters(); renderFeed(); }));
 }
@@ -267,6 +275,7 @@ function renderFeed() {
   const filtered = sortNotices(filterNotices(state.notices, {
     region: state.region,
     type: state.type,
+    program: state.program,
     phase: state.phase,
     query: state.query
   }), state.sort);
@@ -275,7 +284,8 @@ function renderFeed() {
   els.noticeEmpty.hidden = filtered.length > 0;
   els.loadMoreButton.hidden = visible.length >= filtered.length;
   els.loadMoreButton.textContent = `공고 더 보기 (${(filtered.length - visible.length).toLocaleString("ko-KR")}개 남음)`;
-  els.resultSummary.textContent = `${filtered.length.toLocaleString("ko-KR")}개 공고${visible.length < filtered.length ? ` · ${visible.length.toLocaleString("ko-KR")}개 표시` : ""}${state.phase !== "all" ? ` · ${phaseLabel(state.phase)}` : ""}`;
+  const itemLabel = filtered.some((notice) => notice.dataKind === "supply_plan") ? "공고·계획" : "공고";
+  els.resultSummary.textContent = `${filtered.length.toLocaleString("ko-KR")}개 ${itemLabel}${visible.length < filtered.length ? ` · ${visible.length.toLocaleString("ko-KR")}개 표시` : ""}${state.program === THIRD_NEW_TOWN_PROGRAM_ID ? " · 3기 신도시" : ""}${state.phase !== "all" ? ` · ${phaseLabel(state.phase)}` : ""}`;
   syncBrowseUrl();
 }
 
@@ -291,23 +301,32 @@ function renderNoticeCard(notice) {
   const phase = getNoticePhase(notice);
   const date = notice.applyEnd || notice.applyStart || notice.publishedAt;
   const saved = state.saved.has(notice.id);
-  const tags = (notice.tags || []).slice(0, 3);
+  const isSupplyPlan = notice.dataKind === "supply_plan";
+  const thirdNewTown = classifyThirdNewTown(notice);
+  const tags = [...new Set([...(thirdNewTown ? ["3기 신도시", thirdNewTown.label] : []), ...(notice.tags || [])])].slice(0, 3);
+  const firstScheduleLabel = isSupplyPlan ? "공급 예정" : "접수 기간";
+  const firstScheduleValue = isSupplyPlan ? formatKoreanMonth(notice.supplyPlanMonth) : formatDateRange(notice.applyStart, notice.applyEnd);
+  const secondScheduleLabel = isSupplyPlan ? "공고 상태" : "당첨 발표";
+  const secondScheduleValue = isSupplyPlan ? "모집공고 전 계획" : notice.winnerDate ? formatKoreanDate(notice.winnerDate, { year: false }) : "원문 확인";
+  const footer = isSupplyPlan
+    ? `${Number(notice.supplyUnits || notice.totalUnits || 0).toLocaleString("ko-KR")}호 공급 계획 · ${formatSupplyAreas(notice.supplyAreas)}`
+    : `${notice.totalUnits ? `${Number(notice.totalUnits).toLocaleString("ko-KR")}세대` : notice.provider || "공식 공고"} · ${formatPrice(notice.maxPriceTenThousand)}`;
   return `
-    <article class="notice-card ${notice.stale ? "stale" : ""}" data-card-id="${escapeAttribute(notice.id)}">
+    <article class="notice-card ${isSupplyPlan ? "supply-plan" : ""} ${notice.stale ? "stale" : ""}" data-card-id="${escapeAttribute(notice.id)}">
       <button class="notice-open" type="button" data-open-notice="${escapeAttribute(notice.id)}" aria-label="${escapeAttribute(notice.title)} 상세 보기">
         <span class="card-topline">
           <span class="card-badges"><span class="badge phase ${phase.tone}">${escapeHtml(phase.label)}</span><span class="badge source">${escapeHtml(notice.sourceName || "공식기관")}</span></span>
-          <span class="dday">${escapeHtml(getDday(date))}</span>
+          <span class="dday">${isSupplyPlan ? "" : escapeHtml(getDday(date))}</span>
         </span>
         <h3>${escapeHtml(notice.title)}</h3>
         <p class="card-location">${escapeHtml([notice.region, notice.district, notice.type].filter(Boolean).join(" · "))}</p>
         <span class="card-schedule">
-          <span class="schedule-cell"><small>접수 기간</small><strong>${escapeHtml(formatDateRange(notice.applyStart, notice.applyEnd))}</strong></span>
-          <span class="schedule-cell"><small>당첨 발표</small><strong>${escapeHtml(notice.winnerDate ? formatKoreanDate(notice.winnerDate, { year: false }) : "원문 확인")}</strong></span>
+          <span class="schedule-cell"><small>${firstScheduleLabel}</small><strong>${escapeHtml(firstScheduleValue)}</strong></span>
+          <span class="schedule-cell"><small>${secondScheduleLabel}</small><strong>${escapeHtml(secondScheduleValue)}</strong></span>
         </span>
         <span class="tag-row">${tags.map((tag) => `<span>#${escapeHtml(tag)}</span>`).join("")}</span>
       </button>
-      <footer class="card-footer"><span>${notice.totalUnits ? `${Number(notice.totalUnits).toLocaleString("ko-KR")}세대` : notice.provider || "공식 공고"} · ${formatPrice(notice.maxPriceTenThousand)}</span><button class="save-button ${saved ? "saved" : ""}" type="button" data-save-notice="${escapeAttribute(notice.id)}" aria-label="${saved ? "관심 공고에서 삭제" : "관심 공고로 저장"}" aria-pressed="${saved}">${saved ? "♥" : "♡"}</button></footer>
+      <footer class="card-footer"><span>${escapeHtml(footer)}</span><button class="save-button ${saved ? "saved" : ""}" type="button" data-save-notice="${escapeAttribute(notice.id)}" aria-label="${saved ? "관심 항목에서 삭제" : "관심 항목으로 저장"}" aria-pressed="${saved}">${saved ? "♥" : "♡"}</button></footer>
     </article>`;
 }
 
@@ -338,32 +357,35 @@ function openDetail(id) {
   if (!notice) return;
   const phase = getNoticePhase(notice);
   const date = notice.applyEnd || notice.applyStart || notice.publishedAt;
+  const isSupplyPlan = notice.dataKind === "supply_plan";
+  const thirdNewTown = classifyThirdNewTown(notice);
   els.detailSource.textContent = `${notice.sourceName || "공식기관"} · ${notice.region || "전국"}`;
   els.detailDialogTitle.textContent = notice.title;
   els.detailContent.innerHTML = `
     <section class="detail-hero">
-      <div class="detail-badges"><span class="badge phase ${phase.tone}">${escapeHtml(phase.label)}</span><span class="badge">${escapeHtml(notice.type || "공고")}</span>${notice.stale ? '<span class="badge">이전 수집본</span>' : ""}</div>
+      <div class="detail-badges"><span class="badge phase ${phase.tone}">${escapeHtml(phase.label)}</span><span class="badge">${escapeHtml(notice.type || "공고")}</span>${thirdNewTown ? '<span class="badge program">3기 신도시</span>' : ""}${notice.stale ? '<span class="badge">이전 수집본</span>' : ""}</div>
       <h3 class="detail-title">${escapeHtml(notice.title)}</h3>
       <p class="detail-address">${escapeHtml(notice.address || [notice.region, notice.district].filter(Boolean).join(" ") || "주소 원문 확인")}</p>
-      <div class="detail-primary-date"><span><small>접수 기간</small><strong>${escapeHtml(formatDateRange(notice.applyStart, notice.applyEnd))}</strong></span><b>${escapeHtml(getDday(date))}</b></div>
+      <div class="detail-primary-date"><span><small>${isSupplyPlan ? "공급 예정 시기" : "접수 기간"}</small><strong>${escapeHtml(isSupplyPlan ? formatKoreanMonth(notice.supplyPlanMonth) : formatDateRange(notice.applyStart, notice.applyEnd))}</strong></span>${isSupplyPlan ? "" : `<b>${escapeHtml(getDday(date))}</b>`}</div>
     </section>
-    <section class="detail-section"><h3>중요 일정</h3><div class="timeline">
-      ${renderTimelineRow("모집공고", notice.publishedAt)}
-      ${renderTimelineRow("특별공급", notice.specialStart, notice.specialEnd)}
-      ${renderTimelineRow("청약 접수", notice.applyStart, notice.applyEnd)}
-      ${renderTimelineRow("당첨자 발표", notice.winnerDate)}
-      ${renderTimelineRow("계약", notice.contractStart, notice.contractEnd)}
+    <section class="detail-section"><h3>${isSupplyPlan ? "공급계획" : "중요 일정"}</h3><div class="timeline">
+      ${isSupplyPlan ? renderTimelineMonthRow("공급 예정", notice.supplyPlanMonth) : `
+        ${renderTimelineRow("모집공고", notice.publishedAt)}
+        ${renderTimelineRow("특별공급", notice.specialStart, notice.specialEnd)}
+        ${renderTimelineRow("청약 접수", notice.applyStart, notice.applyEnd)}
+        ${renderTimelineRow("당첨자 발표", notice.winnerDate)}
+        ${renderTimelineRow("계약", notice.contractStart, notice.contractEnd)}`}
     </div></section>
     <section class="detail-section"><h3>공급 정보</h3><div class="detail-facts">
       ${renderFact("주택 유형", [notice.type, notice.subtype].filter(Boolean).join(" · ") || "원문 확인")}
-      ${renderFact("공급 세대", notice.totalUnits ? `${Number(notice.totalUnits).toLocaleString("ko-KR")}세대` : "원문 확인")}
-      ${renderFact("최고 분양가", formatPrice(notice.maxPriceTenThousand))}
-      ${renderFact("입주 예정", notice.moveIn || "원문 확인")}
+      ${renderFact(isSupplyPlan ? "계획 공급" : "공급 세대", isSupplyPlan ? `${Number(notice.supplyUnits || notice.totalUnits || 0).toLocaleString("ko-KR")}호` : notice.totalUnits ? `${Number(notice.totalUnits).toLocaleString("ko-KR")}세대` : "원문 확인")}
+      ${isSupplyPlan ? renderFact("전용면적", formatSupplyAreas(notice.supplyAreas)) : renderFact("최고 분양가", formatPrice(notice.maxPriceTenThousand))}
+      ${isSupplyPlan ? renderFact("비고", notice.planNote || "원문 확인") : renderFact("입주 예정", notice.moveIn || "원문 확인")}
       ${renderFact("시행·공급", notice.provider || "원문 확인")}
       ${renderFact("문의", notice.contact || "기관 원문 확인")}
     </div></section>
-    <p class="detail-caution">청약 자격, 접수 시간, 공급금액과 일정 변경은 기관 원문이 최종 기준입니다.${notice.demo ? " 이 공고는 화면 검증용 예시입니다." : ""}</p>
-    <div class="detail-actions"><button type="button" data-calendar-download="${escapeAttribute(notice.id)}">캘린더에 저장</button><a href="${escapeAttribute(safeOfficialUrl(notice.officialUrl))}" target="_blank" rel="noopener">기관 원문 확인</a></div>`;
+    <p class="detail-caution">${isSupplyPlan ? "LH 공급계획은 모집공고가 아니며 사업·공급 여건에 따라 시기와 물량이 바뀔 수 있습니다. 청약은 추후 공식 모집공고를 확인해야 합니다." : `청약 자격, 접수 시간, 공급금액과 일정 변경은 기관 원문이 최종 기준입니다.${notice.demo ? " 이 공고는 화면 검증용 예시입니다." : ""}`}</p>
+    <div class="detail-actions">${isSupplyPlan ? "" : `<button type="button" data-calendar-download="${escapeAttribute(notice.id)}">캘린더에 저장</button>`}<a href="${escapeAttribute(safeOfficialUrl(notice.officialUrl))}" target="_blank" rel="noopener">${isSupplyPlan ? "LH 공급계획 확인" : "기관 원문 확인"}</a></div>`;
   els.detailContent.querySelector("[data-calendar-download]")?.addEventListener("click", () => downloadCalendar(notice));
   showDialog(els.detailDialog);
 }
@@ -372,6 +394,11 @@ function renderTimelineRow(label, start, end = "") {
   if (!start && !end) return "";
   const value = start && end && start !== end ? formatDateRange(start, end) : formatKoreanDate(start || end, { weekday: true });
   return `<div class="timeline-row"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`;
+}
+
+function renderTimelineMonthRow(label, month) {
+  if (!month) return "";
+  return `<div class="timeline-row"><small>${escapeHtml(label)}</small><strong>${escapeHtml(formatKoreanMonth(month))}</strong></div>`;
 }
 
 function renderFact(label, value) {
@@ -574,6 +601,7 @@ function syncBrowseUrl() {
   const setOrDelete = (key, value, defaultValue) => value && value !== defaultValue ? url.searchParams.set(key, value) : url.searchParams.delete(key);
   setOrDelete("region", state.region, "전체");
   setOrDelete("type", state.type, "전체");
+  setOrDelete("program", state.program, "all");
   setOrDelete("phase", state.phase, "active");
   setOrDelete("sort", state.sort, "deadline");
   setOrDelete("q", state.query, "");
@@ -583,6 +611,7 @@ function syncBrowseUrl() {
 function resetFilters() {
   state.region = "전체";
   state.type = "전체";
+  state.program = "all";
   state.phase = "active";
   state.query = "";
   els.searchInput.value = "";
@@ -698,7 +727,12 @@ function formatTimestamp(value) {
 }
 
 function phaseLabel(id) {
-  return ({ active: "진행·예정", open: "접수중", upcoming: "접수예정", announced: "새 공고", closed: "지난 공고" })[id] || "전체";
+  return ({ active: "진행·예정", open: "접수중", upcoming: "접수예정", announced: "새 공고", planned: "공급계획", closed: "지난 항목" })[id] || "전체";
+}
+
+function formatSupplyAreas(areas) {
+  const values = Array.isArray(areas) ? areas.filter((value) => Number.isFinite(Number(value))) : [];
+  return values.length ? `${values.map((value) => Number(value).toLocaleString("ko-KR")).join("·")}㎡` : "면적 원문 확인";
 }
 
 function safeOfficialUrl(value) {

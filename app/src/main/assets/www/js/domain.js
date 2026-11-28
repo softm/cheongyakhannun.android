@@ -14,6 +14,16 @@ export const NOTICE_TYPES = [
   "민간분양", "공공분양", "공공임대", "민간임대", "오피스텔", "무순위", "임의공급"
 ];
 
+export const THIRD_NEW_TOWN_PROGRAM_ID = "third-new-town";
+
+export const THIRD_NEW_TOWN_DISTRICTS = Object.freeze([
+  { id: "namyangju-wangsuk", label: "남양주 왕숙·왕숙2", tokens: ["남양주", "왕숙"], fieldPatterns: ["남양주왕숙", "왕숙2"], allowCrossField: true },
+  { id: "hanam-gyosan", label: "하남 교산", tokens: ["하남", "교산"], fieldPatterns: ["하남교산"], allowCrossField: true },
+  { id: "incheon-gyeyang", label: "인천 계양", tokens: ["인천", "계양"], fieldPatterns: ["인천계양", "계양신도시", "계양테크노밸리"], allowCrossField: false },
+  { id: "goyang-changneung", label: "고양 창릉", tokens: ["고양", "창릉"], fieldPatterns: ["고양창릉"], allowCrossField: true },
+  { id: "bucheon-daejang", label: "부천 대장", tokens: ["부천", "대장"], fieldPatterns: ["부천대장"], allowCrossField: true }
+]);
+
 export const DEFAULT_WATCH_PROFILE = Object.freeze({
   enabled: false,
   regions: [],
@@ -61,8 +71,52 @@ export function daysBetween(from, to) {
   return Math.round((end.getTime() - start.getTime()) / 86_400_000);
 }
 
+function normaliseSearchText(value) {
+  return String(value || "")
+    .toLocaleLowerCase("ko-KR")
+    .replace(/[\s·._()\[\]{}\-/]+/g, "");
+}
+
+function noticeSearchFields(notice) {
+  return [
+    notice.title,
+    notice.region,
+    notice.district,
+    notice.address,
+    notice.type,
+    notice.subtype,
+    notice.sourceName,
+    notice.provider,
+    notice.programName,
+    notice.programDistrict,
+    ...(Array.isArray(notice.tags) ? notice.tags : [])
+  ].filter(Boolean).map(normaliseSearchText);
+}
+
+function noticeSearchText(notice) {
+  return noticeSearchFields(notice).join("");
+}
+
+export function classifyThirdNewTown(notice = {}) {
+  const declared = THIRD_NEW_TOWN_DISTRICTS.find((district) => district.id === notice.programDistrictId);
+  if (notice.program === THIRD_NEW_TOWN_PROGRAM_ID && declared) return declared;
+  const fields = noticeSearchFields(notice);
+  const text = fields.join("");
+  return THIRD_NEW_TOWN_DISTRICTS.find((district) =>
+    district.fieldPatterns.some((pattern) => fields.some((field) => field.includes(pattern)))
+    || (district.allowCrossField && district.tokens.every((token) => text.includes(token)))
+  ) || null;
+}
+
 export function getNoticePhase(notice, now = new Date()) {
   const today = todayKey(now);
+  if (notice.dataKind === "supply_plan") {
+    const planMonth = String(notice.supplyPlanMonth || "");
+    if (/^\d{4}-\d{2}$/.test(planMonth) && planMonth < today.slice(0, 7)) {
+      return { id: "closed", label: "계획 시점 경과", tone: "muted" };
+    }
+    return { id: "planned", label: "공급계획", tone: "plan" };
+  }
   const start = notice.applyStart || notice.specialStart || "";
   const end = notice.applyEnd || notice.specialEnd || "";
   const published = notice.publishedAt || "";
@@ -91,27 +145,31 @@ export function matchesWatchProfile(notice, profile) {
 }
 
 export function filterNotices(notices, filters = {}, now = new Date()) {
-  const query = String(filters.query || "").trim().toLocaleLowerCase("ko-KR");
+  const query = normaliseSearchText(filters.query);
+  const thirdNewTownQuery = /(?:제)?3기신도시/.test(query) || /^(?:제)?3기(?:청약)?$/.test(query);
+  const residualQuery = thirdNewTownQuery
+    ? query.replace(/(?:제)?3기신도시/g, "").replace(/^(?:제)?3기/g, "").replace(/^청약|청약$/g, "")
+    : query;
   return notices.filter((notice) => {
+    const thirdNewTown = classifyThirdNewTown(notice);
     if (filters.region && filters.region !== "전체" && notice.region !== filters.region) return false;
     if (filters.type && filters.type !== "전체" && notice.type !== filters.type && notice.subtype !== filters.type) return false;
+    if (filters.program === THIRD_NEW_TOWN_PROGRAM_ID && !thirdNewTown) return false;
     const phase = getNoticePhase(notice, now).id;
-    if (filters.phase === "active" && !["open", "upcoming", "announced"].includes(phase)) return false;
+    if (filters.phase === "active" && !["open", "upcoming", "announced", "planned"].includes(phase)) return false;
     if (filters.phase && !["all", "active"].includes(filters.phase) && phase !== filters.phase) return false;
     if (filters.savedIds && !filters.savedIds.has(notice.id)) return false;
     if (!query) return true;
-    const haystack = [notice.title, notice.region, notice.district, notice.address, notice.type, notice.subtype, notice.sourceName]
-      .filter(Boolean)
-      .join(" ")
-      .toLocaleLowerCase("ko-KR");
-    return haystack.includes(query);
+    if (thirdNewTownQuery && !thirdNewTown) return false;
+    if (!residualQuery) return true;
+    return noticeSearchText(notice).includes(residualQuery);
   });
 }
 
 export function sortNotices(notices, mode = "deadline", now = new Date()) {
   const today = todayKey(now);
   const futureScore = (notice) => {
-    const date = notice.applyEnd || notice.applyStart || notice.publishedAt || "9999-12-31";
+    const date = notice.applyEnd || notice.applyStart || (notice.supplyPlanMonth ? `${notice.supplyPlanMonth}-01` : "") || notice.publishedAt || "9999-12-31";
     return date < today ? `9999-${date}` : date;
   };
   return [...notices].sort((a, b) => {
@@ -131,6 +189,12 @@ export function formatKoreanDate(value, options = {}) {
     day: "numeric",
     weekday: options.weekday ? "short" : undefined
   }).format(date);
+}
+
+export function formatKoreanMonth(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})$/);
+  if (!match) return "일정 미정";
+  return `${Number(match[1])}년 ${Number(match[2])}월`;
 }
 
 export function formatPrice(amountTenThousand) {
@@ -168,6 +232,7 @@ function icsDate(value) {
 }
 
 export function createNoticeIcs(notice) {
+  if (notice.dataKind === "supply_plan") return "";
   const start = notice.applyStart || notice.publishedAt;
   const end = notice.applyEnd || start;
   if (!start) return "";
